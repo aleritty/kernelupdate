@@ -1,0 +1,188 @@
+#!/bin/bash
+
+############################################################################################################
+#
+# Kernel Update
+# Autor: Aleritty <aleritty//#AT#//aleritty.net> http://www.aleritty.net
+#	Questo script permette di tenere sotto controllo il proprio kernel
+#	Aggiornando, pulendo e facendo altre operazioni
+#
+#	esecuzione: ~$ sudo ./kernel-update [ -h --help]
+#		Per uscire dal programma premere il tasto "q"
+#		oppure seguire il menu
+#
+#	Ricordarsi di dare allo script i ermessi di esecuzione con il comando:
+#		~$ chmod +x kernel-update
+#
+#	Se si desidera lanciare il programma come comando di sistema può usare:
+#		~# cp update-kernel /usr/bin/update-kernel <-- eseguito come superutente
+#	Da questo momento è possibile lanciarlo direttamente con:
+#		~$ sudo update-kernel
+#	Il comando sarà disponibile a tutti gli utenti del sistema, ma solo quelli autorizzati in visudo
+#	potranno realmente lanciarlo.
+#
+#
+#	Questo script è rilasciato sotto licenza creative commons: http://creativecommons.org/licenses/by-nc-sa/2.5/it/
+#	E' quindi possibile: riprodurre, distribuire, comunicare al pubblico, esporre in pubblico, eseguire, modificare quest'opera
+#	Alle seguenti condizioni:
+#	Attribuzione. Devi attribuire la paternità dell'opera nei modi indicati dall'autore o da chi ti ha dato l'opera
+#	in licenza e in modo tale da non suggerire che essi avallino te o il modo in cui tu usi l'opera.
+#
+#	Non commerciale. Non puoi usare quest'opera per fini commerciali.
+#
+#	Condividi allo stesso modo. Se alteri o trasformi quest'opera, o se la usi per crearne un'altra, puoi distribuire
+#	l'opera risultante solo con una licenza identica o equivalente a questa.
+#
+#	Questo script agisce su indicazioni e conferma dell'utente, pertanto l'autore non si ritiene responsabile
+#	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
+#
+
+if [[ $EUID -ne 0 ]]; then
+   echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2
+   exit 1
+fi
+
+removeclean()
+{
+	#elimina tutti i kernel tranne l'ultimo
+	dpkg -l 'linux-*' | sed '/^ii/!d;/'"$(uname -r | sed "s/\(.*\)-\([^0-9]\+\)/\1/")"'/d;s/^[^ ]* [^ ]* \([^ ]*\).*/\1/;/[0-9]/!d' | xargs -p sudo apt-get -y purge
+}
+
+selectiveclean()
+{
+	echo "in sviluppo"
+}
+
+selectiveupgrade()
+{
+	echo "in sviluppo"
+}
+
+updatelatest()
+{
+	#scarica lista kernel ed attributi
+	list=$(lynx --dump http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk '/http/{print $2}')
+	AddressLastVersion=$( echo "${list}"  | grep -v rc | tail -n 1)
+	LastKernelAvaliable=$(echo $AddressLastVersion | cut -d "/" -f 6 | cut -d "-" -f1 | tr -d v )
+	if [ -z $(echo $LastKernelAvaliable | cut -d "." -f3) ]  ; then LastKernelAvaliable=${LastKernelAvaliable}.0; fi  
+
+	#ottiene i kernel installati e l'attuale
+	LastKernelInstalled=$(ls /boot/ | grep img | cut -d "-" -f2 | sort -V | cut -d "." -f1,2,3 | tail -n 1)
+
+	#tipo di processore
+	arch=`uname -m`
+	if  [ $arch = i686 ] || [ $arch = i386 ]; then 
+		myarch="i386" 
+	elif [ $arch = "x86_64" ]; then
+		myarch="amd64"
+	else 
+		echo "Ma che processore hai? Non trovo pacchetti per lui..."
+		exit 0
+	fi
+
+	#confronto
+	if [ $LastKernelInstalled = $LastKernelAvaliable ]; then
+		echo
+		echo
+		echo "Il tuo kernel" $LastKernelInstalled  "e' l'ultima versione disponibile."
+		echo "Arrivederci"
+		echo
+		echo
+		exit 0
+	else
+		echo
+		echo "	Il tuo kernel è il" $LastKernelInstalled "è disponibile il" $LastKernelAvaliable
+		echo
+		read -p "Vuoi aggiornare? [s]/n" -n 1 -s aggiorno
+		if [[ "$aggiorno" != "n" ]];then
+	        #procedura aggiornamento
+			echo
+			echo "Ok, scarico il nuovo kernel"
+	        DownloadFolder=/tmp/kernel_$LastKernelAvaliable; mkdir -p $DownloadFolder; cd $DownloadFolder
+	        wget $(lynx -dump -listonly $AddressLastVersion | awk '/http/{print $2}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
+	        echo
+	        echo "...e lo installo"
+	        echo
+	        sudo dpkg -i *.deb
+	        echo
+	        echo "ho aggiornato all'ultima versione, riavvia per averla subito"
+	        echo
+	        echo "Se vuoi posso disinstallare i vecchi kernel, ma sarebbe consigliato prima riavviare per vedere se il"$LastKernelAvaliable"funziona"
+	        echo
+	        read -p "Che faccio tolgo di mezzo i vecchi kernel? s/[n]" -n 1 -s pulisco
+	        if [[ "$pulisco" != "s" ]];then
+	        	echo
+	        	echo "ok, dovrai farlo a mano o rilanciarmi"
+	        	echo "Arrivederci"
+	        	echo
+	        	exit 0
+	        else
+	        	removeclean
+	        	exit 0
+	        fi
+		else
+			#hai scelto di non aggiornare
+			echo
+			echo "Ok, hai scelto di non aggiornare!"
+			echo "Ciao, alla prossima!"
+			exit 0
+		fi
+	fi
+}
+
+if [[ "$1" = "--help" || "$1" = "-h" ]]; then
+	echo
+	echo "Kernel-update
+Written By AleRitty <aleritty#\@/#aleritty.net>
+Aggiorna o gestisce i kernel installati sul sistema
+
+Usage:
+sudo ./update-kernel [--help | --upd | --rem ]
+
+--upd 			Aggiorna il kernel all'ultima versione
+--rem			rimuove tutti i kernel tranne l'ultimo
+--help			Mostra questa schermata
+"
+	exit 1
+fi
+
+if [[ "$1" = "--upd" || "$1" = "-u" ]]; then
+	echo
+	echo "Kernel-update: hai scelto di aggiornare senza passare dal via"
+	updatelatest
+	exit 0
+fi
+
+if [[ "$1" = "--rem" || "$1" = "-r" ]]; then
+	echo
+	echo "Kernel-update: hai scelto di cancellare i vecchi kernel senza passare dal via"
+	removeclean
+	exit 0
+fi
+
+while :
+do
+	clear
+	echo
+	echo
+	echo "a) Aggiornamenti kernel"
+	echo "b) Pulizia vecchi kernel"
+	echo "q) Esci"
+	read -n 1 -p 'Che cosa vuoi fare?' -s x
+	case $x in
+		a )	echo
+			updatelatest
+			;;
+		b )	echo
+			removeclean
+			;;
+		q )	echo
+		  	echo "Ok, ciao!"
+		  	clear
+			exit 0
+			;;
+		* )
+			echo "Comando non valido "\"$x\"
+			;;
+	esac 
+done

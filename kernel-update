@@ -31,7 +31,7 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
-VERSION=0.36
+VERSION=0.37
 
 if [[ $EUID -ne 0 ]]; then
    echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2
@@ -75,7 +75,9 @@ sysuninstall()
 
 checkupd()
 {
-	gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "VERSION=")
+	gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
+	echo ${gitversion:8}
+	exit 0
 	if [[ ${gitversion:8} > $VERSION ]];then
 		echo
 		read -n 1 -p "Una nuova versione è disponibile, vuoi aggiornare? [s]/n" -s sicupd

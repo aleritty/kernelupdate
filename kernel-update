@@ -38,7 +38,7 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
-VERSION=0.33
+VERSION=0.34
 
 if [[ $EUID -ne 0 ]]; then
    echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2
@@ -232,9 +232,12 @@ do
 	echo
 	echo "a) Aggiornamenti kernel"
 	echo "b) Pulizia vecchi kernel"
-	echo "c) Installa per tutto il sistema"
-	echo "d) Disinstalla"
-	echo "e) Cerca aggiornamenti"
+	if [[ "$0" != "/usr/bin/kernel-update" ]];then
+		echo "c) Installa per tutto il sistema"
+	else
+		echo "d) Disinstalla script"
+	fi
+	echo "e) Cerca aggiornamenti script"
 	echo
 	echo "q) Esci"
 	echo

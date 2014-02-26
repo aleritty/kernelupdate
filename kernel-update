@@ -57,7 +57,9 @@ sysinstall()
 	read -n 1 -p "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -s sicupd
 	if [[ "$sicupd" != "n" ]]; then
 		cp $0 /usr/bin/kernel-update
+		echo
 		echo "Installazione completata"
+		read -n 1
 	fi
 }
 
@@ -67,7 +69,9 @@ sysuninstall()
 	read -n 1 -p "Vuoi relmente disinistallare kernel-update dal sistema? [s]/n" -s sicupd
 	if [[ "$sicupd" != "n" ]]; then
 		rm /usr/bin/kernel-update
+		echo
 		echo "disinstallazione completata"
+		read -n 1
 	fi
 }
 
@@ -92,6 +96,10 @@ checkupd()
 		else
 			echo "Per questa volta salto l'aggiornamento"
 		fi
+	else
+		echo
+		echo "Nessun aggiornamento trovato, hai l'ultima versione"
+		read -n 1
 	fi
 }
 
@@ -208,7 +216,7 @@ while :
 do
 	clear
 	echo
-	echo "Kernel Update by AleRitty
+	echo "Kernel Update by AleRitty $VERSION
 	Questo script permette di tenere sotto controllo il proprio kernel
 	Aggiornando, pulendo e facendo altre operazioni"
 	echo
@@ -239,7 +247,6 @@ do
 			;;
 		q )	echo
 			clear
-			checkupd
 			echo
 		  	echo "Ok, ciao!"
 		  	echo

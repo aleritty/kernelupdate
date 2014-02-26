@@ -10,17 +10,10 @@
 #	Script liberamente tratto dal kernelupdater di ferramroberto
 #
 #	esecuzione: ~$ sudo ./kernel-update [ -h --help]
-#		Per uscire dal programma premere il tasto "q" oppure seguire il menu
+#		Per uscire dal programma premere il tasto "q"
 #
-#	Ricordarsi di dare allo script i ermessi di esecuzione con il comando:
+#	Ricordarsi di dare allo script i permessi di esecuzione con il comando:
 #		~$ chmod +x kernel-update
-#
-#	Se si desidera lanciare il programma come comando di sistema può usare:
-#		~# cp update-kernel /usr/bin/update-kernel <-- eseguito come superutente
-#	Da questo momento è possibile lanciarlo direttamente con:
-#		~$ sudo update-kernel
-#	Il comando sarà disponibile a tutti gli utenti del sistema, ma solo quelli autorizzati in visudo
-#	potranno realmente lanciarlo.
 #
 #
 #	Questo script è rilasciato sotto licenza creative commons: http://creativecommons.org/licenses/by-nc-sa/2.5/it/
@@ -38,7 +31,7 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
-VERSION=0.34
+VERSION=0.36
 
 if [[ $EUID -ne 0 ]]; then
    echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2
@@ -59,6 +52,10 @@ sysinstall()
 		cp $0 /usr/bin/kernel-update
 		echo
 		echo "Installazione completata"
+		echo "Da questo momento è possibile lanciare lo script con"
+		echo "$ sudo kernel-updater || # kernel-updater"
+		echo "da ovunque e da tutti gli utenti con permessi di superutente (vedi visudo)"
+		echo
 		read -n 1
 	fi
 }
@@ -72,13 +69,14 @@ sysuninstall()
 		echo
 		echo "disinstallazione completata"
 		read -n 1
+		exit 0
 	fi
 }
 
 checkupd()
 {
-	gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/VERSION)
-	if [[ $gitversion > $VERSION ]];then
+	gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "VERSION=")
+	if [[ ${gitversion:8} > $VERSION ]];then
 		echo
 		read -n 1 -p "Una nuova versione è disponibile, vuoi aggiornare? [s]/n" -s sicupd
 		if [[ "$sicupd" != "n" ]]; then

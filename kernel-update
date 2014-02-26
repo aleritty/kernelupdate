@@ -31,7 +31,7 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
-VERSION=0.39
+VERSION=0.40
 
 if [[ $EUID -ne 0 ]]; then
    echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2

@@ -80,7 +80,7 @@ checkupd()
 	exit 0
 	if [[ ${gitversion:8} > $VERSION ]];then
 		echo
-		read -n 1 -p "Una nuova versione è disponibile, vuoi aggiornare? [s]/n" -s sicupd
+		read -n 1 -p "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare? [s]/n" -s sicupd
 		if [[ "$sicupd" != "n" ]]; then
 			if $(wget https://github.com/aleritty/kernelupdate/raw/master/kernel-update -O /tmp/kernel-updatescriptdown);then
 				if [ -e "/usr/bin/kernel-update" ];then

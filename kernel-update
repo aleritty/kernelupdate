@@ -38,6 +38,8 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
+VERSION=0.30
+
 if [[ $EUID -ne 0 ]]; then
    echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2
    exit 1
@@ -48,6 +50,50 @@ if [[ "$distribid" != "DISTRIB_ID=Ubuntu" ]]; then
 	echo "Questo script installa i kernel di ubuntu, se lo vuoi lanciare su un'altra distribuzione lo fai a tuo rischio e pericolo di rompere tutto... Pertanto ti assumi anche l'onere di modificare lo script in modo che ti consenta di farlo, se non ne sei capace vuol dire che non dovresti nemmeno installare un kernel non progettato per la tua distribuzione."
 	exit 1
 fi
+
+sysinstall()
+{
+	echo
+	read -n 1 -p "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -s sicupd
+	if [[ "$sicupd" != "n" ]]; then
+		cp $0 /usr/bin/kernel-update
+		echo "Installazione completata"
+	fi
+}
+
+sysuninstall()
+{
+	echo
+	read -n 1 -p "Vuoi relmente disinistallare kernel-update dal sistema? [s]/n" -s sicupd
+	if [[ "$sicupd" != "n" ]]; then
+		rm /usr/bin/kernel-update
+		echo "disinstallazione completata"
+	fi
+}
+
+checkupd()
+{
+	gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/VERSION)
+	if [[ $gitversion > $VERSION ]];then
+		read -n 1 -p "Una nuova versione è disponibile, vuoi aggiornare? [s]/n" -s sicupd
+		if [[ "$sicupd" != "n" ]]; then
+			if $(wget https://github.com/aleritty/kernelupdate/raw/master/kernel-update -O /tmp/kernel-updatescriptdown);then
+				if [ -e "/usr/bin/kernel-update" ];then
+					read -n 1 -p "Aggiorno il binario di sistema? [s]/n" -s sicinst
+					if [[ "$sicupd" != "n" ]]; then
+						cp /tmp/kernel-updatescriptdown /usr/bin/kernel-update
+					fi
+				else
+					read -p "Dove metto il file con la nuova versione? (percorso assoluto)" -s locatinstall
+					cp /tmp/kernel-updatescriptdown $locatinstall
+				fi
+				echo "Ricordati di uscire e rilanciare lo script per avere la nuova versione"
+			fi
+		else
+			echo "Per questa volta salto l'aggiornamento"
+		fi
+	fi
+}
 
 removeclean()
 {
@@ -92,17 +138,13 @@ updatelatest()
 		echo
 		echo
 		echo "Il tuo kernel" $LastKernelInstalled  "e' l'ultima versione disponibile."
-		echo "Arrivederci"
-		echo
-		echo
-		exit 0
+		read -n 1
 	else
 		echo
 		echo "	Il tuo kernel è il" $LastKernelInstalled "è disponibile il" $LastKernelAvaliable
 		echo
 		read -p "Vuoi aggiornare? [s]/n" -n 1 -s aggiorno
 		if [[ "$aggiorno" != "n" ]];then
-	        #procedura aggiornamento
 			echo
 			echo "Ok, scarico il nuovo kernel"
 	        DownloadFolder=/tmp/kernel_$LastKernelAvaliable; mkdir -p $DownloadFolder; cd $DownloadFolder
@@ -120,19 +162,14 @@ updatelatest()
 	        if [[ "$pulisco" != "s" ]];then
 	        	echo
 	        	echo "ok, dovrai farlo a mano o rilanciarmi"
-	        	echo "Arrivederci"
-	        	echo
-	        	exit 0
 	        else
 	        	removeclean
-	        	exit 0
 	        fi
 		else
 			#hai scelto di non aggiornare
 			echo
 			echo "Ok, hai scelto di non aggiornare!"
-			echo "Ciao, alla prossima!"
-			exit 0
+			read -n 1
 		fi
 	fi
 }
@@ -177,6 +214,10 @@ do
 	echo
 	echo "a) Aggiornamenti kernel"
 	echo "b) Pulizia vecchi kernel"
+	echo "c) Installa per tutto il sistema"
+	echo "d) Disinstalla"
+	echo "e) Cerca aggiornamenti"
+	echo
 	echo "q) Esci"
 	echo
 	read -n 1 -p 'Che cosa vuoi fare?' -s x
@@ -187,8 +228,19 @@ do
 		b )	echo
 			removeclean
 			;;
+		c )	echo
+			sysinstall
+			;;
+		d )	echo
+			sysuninstall
+			;;
+		e )	echo
+			checkupd
+			;;
 		q )	echo
 			clear
+			checkupd
+			echo
 		  	echo "Ok, ciao!"
 		  	echo
 			exit 0

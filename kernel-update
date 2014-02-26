@@ -114,7 +114,7 @@ checkupd()
 removeclean()
 {
 	#elimina tutti i kernel tranne l'ultimo
-	dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | egrep '[0-9]+\.[0-9]+\.[0-9]+' | grep -v $(uname -r) | xargs sudo apt-get -y purge
+	dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | egrep '[0-9]+\.[0-9]+\.[0-9]+' | grep -v $(uname -r) | xargs sudo apt-get -y autoremove --purge
 }
 
 selectiveclean()

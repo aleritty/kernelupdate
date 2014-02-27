@@ -8,6 +8,7 @@
 #	Aggiornando, pulendo e facendo altre operazioni
 #
 #	Script liberamente tratto dal kernelupdater di ferramroberto
+#	Correzione Bug di LinuxMint a cura di "IlBruttoBug" Blog
 #
 #	esecuzione: ~$ sudo ./kernel-update [ -h --help]
 #		Per uscire dal programma premere il tasto "q"
@@ -31,15 +32,17 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
-VERSION=0.40
+VERSION=0.41
 
 if [[ $EUID -ne 0 ]]; then
    echo "Devi avere i privilegi da superutente per lanciarmi" 1>&2
    exit 1
 fi
 
+autorizeddistro=['Ubuntu','LinuxMint']
+
 distribid=$(cat /etc/lsb-release | grep DISTRIB_ID)
-if [[ "$distribid" != "DISTRIB_ID=Ubuntu" ]]; then
+if ![[ ${autorizeddistro[*]} =~ "${distribid:11}" ]]; then
 	echo "Questo script installa i kernel di ubuntu, se lo vuoi lanciare su un'altra distribuzione lo fai a tuo rischio e pericolo di rompere tutto... Pertanto ti assumi anche l'onere di modificare lo script in modo che ti consenta di farlo, se non ne sei capace vuol dire che non dovresti nemmeno installare un kernel non progettato per la tua distribuzione."
 	exit 1
 fi

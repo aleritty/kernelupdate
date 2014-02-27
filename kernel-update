@@ -56,7 +56,7 @@ sysinstall()
 		echo
 		echo "Installazione completata"
 		echo "Da questo momento è possibile lanciare lo script con"
-		echo "$ sudo kernel-updater || # kernel-updater"
+		echo "$ sudo kernel-update || # kernel-update"
 		echo "da ovunque e da tutti gli utenti con permessi di superutente (vedi visudo)"
 		echo
 		read -n 1

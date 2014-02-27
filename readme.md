@@ -18,7 +18,7 @@ Per maggiori informazioni leggere il contenuto dello script
 
 ##todo:
 
-* autoaggiornamento (perchè uno script vecchio è uno script morto)
 * internazionalizzazione (l'inglese è importante nella vita)
-* installazione di sistema
 * servizio di check automatico
+
+#Nel caso foste a conoscenza di altre distribuzioni che utilizzano il kernel patchato da Ubuntu segnalatemele e provvederò ad aggiungerle allo script!

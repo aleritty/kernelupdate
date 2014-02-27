@@ -9,8 +9,8 @@ Aggiorna o gestisce i kernel installati sul sistema
 Usage: 
 sudo ./update-kernel [--help | --upd | --rem ] 
 
---upd 			Aggiorna il kernel all'ultima versione 
---rem			rimuove tutti i kernel tranne l'ultimo 
+--upd 			Aggiorna il kernel all\'ultima versione 
+--rem			rimuove tutti i kernel tranne l\'ultimo 
 --help			Mostra questa schermata 
 ```
 

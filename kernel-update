@@ -34,7 +34,7 @@
 #	di qualsiasi danno o perdita di dati derivata dall'uso improprio o inconsapevole di questo script!
 #
 
-VERSION=0.43
+VERSION=0.44
 
 
 notifica(){

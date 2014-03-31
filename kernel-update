@@ -10,7 +10,7 @@
 #    Script liberamente tratto dal kernelupdater di ferramroberto
 #    Correzione Bug di LinuxMint a cura di "IlBruttoBug" Blog
 #
-#    Esecuzione: 
+#    Esecuzione:
 #        ~$ sudo ./kernel-update [ -h --help]
 #
 #    Per uscire dal programma premere il tasto "q"
@@ -149,7 +149,7 @@ chkkernelupdate(){
     if [ $LastKernelInstalled = $LastKernelAvailable ]; then
         notifica "Complimenti il tuo kernel $LastKernelInstalled e' l'ultima versione disponibile."
     else
-        notifica "Il tuo kernel è il $LastKernelInstalled è disponibile il $LastKernelAvailable per aggiornare lancia kernel-update"
+        notifica "Il tuo kernel è il $LastKernelInstalled, è disponibile il $LastKernelAvailable per aggiornare lancia kernel-update"
     fi
 }
 
@@ -191,11 +191,11 @@ upgradekernel(){
 
     #confronto
     if [ $LastKernelInstalled = $LastKernelAvailable ]; then
-        notifica "Il tuo kernel " $LastKernelInstalled  " e' l'ultima versione disponibile."
+        notifica "Il tuo kernel $LastKernelInstalled è l'ultima versione disponibile."
         read -n 1
     else
         echo
-        echo "    Il tuo kernel è il " $LastKernelInstalled " è disponibile" \
+        echo "    Il tuo kernel è il " $LastKernelInstalled ", è disponibile" \
              "il " $LastKernelAvailable
         echo
         read -p "Vuoi aggiornare? [s]/n" -n 1 -s aggiorno
@@ -301,11 +301,10 @@ do
     Questo script permette di tenere sotto controllo il proprio kernel
     Aggiornando, pulendo e facendo altre operazioni"
     echo
-        if [[ $FIRSTTIME -eq 1 ]]; then
+    if [[ $FIRSTTIME -eq 1 ]]; then
         upgradescript
-    echo $FIRSTTIME        
-            FIRSTTIME=0
-        fi
+        FIRSTTIME=0
+    fi
     echo
     echo "a) Aggiornamenti kernel"
 #    echo "b) Pulizia vecchi kernel"
@@ -354,5 +353,5 @@ do
             echo
             echo "Comando non valido "\"$x\"
             ;;
-    esac 
+    esac
 done

@@ -39,7 +39,7 @@
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
 
-VERSION=0.48
+VERSION=0.49
 
 if ! which lynx > /dev/null;then
   apt-get -y install lynx
@@ -76,7 +76,7 @@ fi
 
 sysinstall(){
     echo
-    read -n 1 -p "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -s sicupd
+    read -p "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -n 1 -s sicupd
     if [[ "$sicupd" != "n" ]]; then
         cp $0 /usr/bin/kernel-update
         echo
@@ -85,17 +85,17 @@ sysinstall(){
         echo "$ sudo kernel-update || # kernel-update"
         echo "da ovunque e da tutti gli utenti con permessi di superutente (vedi visudo)"
         echo
-        read -n 1
+        read -p "Premi un tasto per continuare" -n 1
     fi
 }
 
 sysuninstall(){
     echo
-    read -n 1 -p "Vuoi relmente disinistallare kernel-update dal sistema? [s]/n" -s sicupd
+    read -p "Vuoi relmente disinistallare kernel-update dal sistema? [s]/n" -n 1 -s sicupd
     if [[ "$sicupd" != "n" ]]; then
         rm /usr/bin/kernel-update
         notifica "disinstallazione completata"
-        read -n 1
+        read -p "Premi un tasto per continuare" -n 1
         exit 0
     fi
 }
@@ -103,29 +103,30 @@ sysuninstall(){
 upgradescript(){
     gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
     if [[ ${gitversion:8} > $VERSION ]];then
-        echo
-        read -n 1 -p "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare? [s]/n" -s sicupd
+        echo 
+        read -p "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare? [s]/n" -n 1 -s sicupd
         if [[ "$sicupd" != "n" ]]; then
             if $(wget https://github.com/aleritty/kernelupdate/raw/master/kernel-update -O /tmp/kernel-updatescriptdown);then
                 if [ -e "/usr/bin/kernel-update" ];then
-                    read -n 1 -p "Aggiorno il binario di sistema? [s]/n" -s sicinst
+                    read -p "Aggiorno il binario di sistema? [s]/n" -n 1 -s sicinst
                     if [[ "$sicupd" != "n" ]]; then
                         cp /tmp/kernel-updatescriptdown /usr/bin/kernel-update
                         notifica "Binario di sistema aggiornato"
                     else
                         notifica "Nessun aggiornamento effettuato"
                     fi
-                    read -n 1
+                    
+                    read -p "Premi un tasto per continuare" -n 1
                 else
                     read -p "Dove metto il file con la nuova versione? (percorso assoluto)" -s locatinstall
                     cp /tmp/kernel-updatescriptdown $locatinstall
                 fi
                 notifica "Ricordati di uscire e rilanciare lo script per avere la nuova versione"
-                read -n 1
+                read -p "Premi un tasto per continuare" -n 1
             fi
         else
             notifica "Per questa volta salto l'aggiornamento"
-            read -n 1
+            read -p "Premi un tasto per continuare" -n 1
         fi
     else
         echo "Nessun aggiornamento trovato, hai l'ultima versione dello script"
@@ -184,7 +185,7 @@ upgradekernel(){
     #confronto
     if [ $LastKernelInstalled = $LastKernelAvailable ]; then
         notifica "Il tuo kernel $LastKernelInstalled è l'ultima versione disponibile."
-        read -n 1
+        read -p "Premi un tasto per continuare" -n 1
     else
         echo
         echo "    Il tuo kernel è il " $LastKernelInstalled ", è disponibile il " $LastKernelAvailable
@@ -216,7 +217,7 @@ upgradekernel(){
             #hai scelto di non aggiornare
             echo
             notifica "Ok, hai scelto di non aggiornare!"
-            read -n 1
+            read -p "Premi un tasto per continuare" -n 1
         fi
     fi
 }
@@ -306,7 +307,7 @@ do
     fi
     echo "q) Esci"
     echo
-    read -n 1 -p 'Che cosa vuoi fare?' -s x
+    read -p 'Che cosa vuoi fare?' -n 1 -s x
     case $x in
         a )    echo
             upgradekernel

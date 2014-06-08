@@ -39,8 +39,11 @@
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
 
-VERSION=0.44
+VERSION=0.45
 
+if ! which lynx > /dev/null;then
+  apt-get -y install lynx
+fi
 
 notifica(){
     if [ -f "/usr/bin/notify-send" ]; then

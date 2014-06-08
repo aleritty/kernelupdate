@@ -39,7 +39,7 @@
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
 
-VERSION=0.45
+VERSION=0.46
 
 if ! which lynx > /dev/null;then
   apt-get -y install lynx
@@ -69,28 +69,21 @@ autorizeddistro=['Ubuntu','LinuxMint']
 
 distribid=$(cat /etc/lsb-release | grep DISTRIB_ID)
 if ! [[ ${autorizeddistro[*]} =~ "${distribid:11}" ]]; then
-    echo "Questo script installa i kernel di ubuntu, se lo vuoi lanciare su " \
-         "un'altra distribuzione lo fai a tuo rischio e pericolo di rompere " \
-         "tutto... Pertanto ti assumi anche l'onere di modificare lo script " \
-         "in modo che ti consenta di farlo, se non ne sei capace vuol dire " \
-         "che non dovresti nemmeno installare un kernel non progettato per " \
-         "la tua distribuzione."
+    echo "Questo script installa i kernel di ubuntu, se lo vuoi lanciare su un'altra distribuzione lo fai a tuo rischio e pericolo di rompere tutto... Pertanto ti assumi anche l'onere di modificare lo script in modo che ti consenta di farlo, se non ne sei capace vuol dire che non dovresti nemmeno installare un kernel non progettato per la tua distribuzione."
     exit 1
 fi
 
 
 sysinstall(){
     echo
-    read -n 1 -p "Hai scelto di installarmi a livello di sistema, potrai " \
-        "richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -s sicupd
+    read -n 1 -p "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -s sicupd
     if [[ "$sicupd" != "n" ]]; then
         cp $0 /usr/bin/kernel-update
         echo
         echo "Installazione completata"
         echo "Da questo momento è possibile lanciare lo script con"
         echo "$ sudo kernel-update || # kernel-update"
-        echo "da ovunque e da tutti gli utenti con permessi di superutente " \
-             "(vedi visudo)"
+        echo "da ovunque e da tutti gli utenti con permessi di superutente (vedi visudo)"
         echo
         read -n 1
     fi
@@ -98,8 +91,7 @@ sysinstall(){
 
 sysuninstall(){
     echo
-    read -n 1 -p "Vuoi relmente disinistallare kernel-update dal sistema? " \
-        "[s]/n" -s sicupd
+    read -n 1 -p "Vuoi relmente disinistallare kernel-update dal sistema? [s]/n" -s sicupd
     if [[ "$sicupd" != "n" ]]; then
         rm /usr/bin/kernel-update
         notifica "disinstallazione completata"
@@ -112,13 +104,11 @@ upgradescript(){
     gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
     if [[ ${gitversion:8} > $VERSION ]];then
         echo
-        read -n 1 -p "La nuova versione "${gitversion:8}" è disponibile, vuoi" \
-            " aggiornare? [s]/n" -s sicupd
+        read -n 1 -p "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare? [s]/n" -s sicupd
         if [[ "$sicupd" != "n" ]]; then
             if $(wget https://github.com/aleritty/kernelupdate/raw/master/kernel-update -O /tmp/kernel-updatescriptdown);then
                 if [ -e "/usr/bin/kernel-update" ];then
-                    read -n 1 -p "Aggiorno il binario di sistema? [s]/n" \
-                        -s sicinst
+                    read -n 1 -p "Aggiorno il binario di sistema? [s]/n" -s sicinst
                     if [[ "$sicupd" != "n" ]]; then
                         cp /tmp/kernel-updatescriptdown /usr/bin/kernel-update
                         notifica "Binario di sistema aggiornato"
@@ -127,8 +117,7 @@ upgradescript(){
                     fi
                     read -n 1
                 else
-                    read -p "Dove metto il file con la nuova versione? " \
-                        "(percorso assoluto)" -s locatinstall
+                    read -p "Dove metto il file con la nuova versione? (percorso assoluto)" -s locatinstall
                     cp /tmp/kernel-updatescriptdown $locatinstall
                 fi
                 notifica "Ricordati di uscire e rilanciare lo script per avere la nuova versione"
@@ -198,8 +187,7 @@ upgradekernel(){
         read -n 1
     else
         echo
-        echo "    Il tuo kernel è il " $LastKernelInstalled ", è disponibile" \
-             "il " $LastKernelAvailable
+        echo "    Il tuo kernel è il " $LastKernelInstalled ", è disponibile il " $LastKernelAvailable
         echo
         read -p "Vuoi aggiornare? [s]/n" -n 1 -s aggiorno
         if [[ "$aggiorno" != "n" ]];then
@@ -207,9 +195,7 @@ upgradekernel(){
             echo "Ok, scarico il nuovo kernel"
             DownloadFolder=/tmp/kernel_$LastKernelAvailable
             mkdir -p $DownloadFolder; cd $DownloadFolder
-            wget $(lynx -dump -listonly $AddressLastVersion | \
-                awk '/http/{print $2}' | \
-                egrep 'all.deb|generic(.){1,}'$myarch'.deb')
+            wget $(lynx -dump -listonly $AddressLastVersion | awk '/http/{print $2}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
             echo
             echo "...e lo installo"
             echo
@@ -217,12 +203,9 @@ upgradekernel(){
             echo
             echo "ho aggiornato all'ultima versione, riavvia per averla subito"
             echo
-            echo "Se vuoi posso disinstallare i vecchi kernel, ma sarebbe " \
-                 "consigliato prima riavviare per vedere se il " \
-                 $LastKernelAvailable " funziona"
+            echo "Se vuoi posso disinstallare i vecchi kernel, ma sarebbe consigliato prima riavviare per vedere se il" $LastKernelAvailable " funziona"
             echo
-            read -p "Che faccio tolgo di mezzo i vecchi kernel? s/[n]" -n 1 \
-                -s pulisco
+            read -p "Che faccio tolgo di mezzo i vecchi kernel? s/[n]" -n 1 -s pulisco
             if [[ "$pulisco" != "s" ]];then
                 echo
                 echo "ok, dovrai farlo a mano o rilanciarmi"
@@ -317,11 +300,9 @@ do
         echo "d) Disinstalla script di sistema"
     fi
     if ! [ -f "/etc/cron.weekly/ZZkernelupdate" ];then
-        echo "e) Installa controllo automatico aggiornamenti kernel" \
-             "(settimanale)"
+        echo "e) Installa controllo automatico aggiornamenti kernel (settimanale)"
     else
-        echo "f) Disinstalla controllo automatico aggiornamenti kernel" \
-             "(settimanale)"
+        echo "f) Disinstalla controllo automatico aggiornamenti kernel (settimanale)"
     fi
     echo "q) Esci"
     echo

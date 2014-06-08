@@ -39,7 +39,7 @@
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
 
-VERSION=0.46
+VERSION=0.47
 
 if ! which lynx > /dev/null;then
   apt-get -y install lynx

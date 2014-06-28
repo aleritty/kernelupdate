@@ -37,13 +37,12 @@
 #   Questo script agisce su indicazioni e conferma dell'utente, pertanto 
 #   l'autore non si ritiene responsabile di qualsiasi danno o perdita di dati 
 #   derivata dall'uso improprio o inconsapevole di questo script!
+#
+#   Contributo alla versione 0.50:
+#   Fesion <fesion//#AT#//libero.it>
 
 
-VERSION=0.49
-
-if ! which lynx > /dev/null;then
-  apt-get -y install lynx
-fi
+VERSION=0.50
 
 notifica(){
     if [ -f "/usr/bin/notify-send" ]; then
@@ -101,7 +100,7 @@ sysuninstall(){
 }
 
 upgradescript(){
-    gitversion=$(lynx --dump https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
+    gitversion=$(curl -L -s https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
     if [[ ${gitversion:8} > $VERSION ]];then
         echo 
         read -p "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare? [s]/n" -n 1 -s sicupd
@@ -133,8 +132,8 @@ upgradescript(){
     fi
 }
 
-chkkernelupdate(){
-    list=$(lynx --dump http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk '/http/{print $2}')
+chkkernelupdate(){    
+    list=$(curl -s http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}')
     AddressLastVersion=$( echo "${list}"  | grep -v rc | tail -n 1)
     LastKernelAvailable=$(echo $AddressLastVersion | cut -d "/" -f 6 | cut -d "-" -f1 | tr -d v )
     if [ -z $(echo $LastKernelAvailable | cut -d "." -f3) ]  ; then LastKernelAvailable=${LastKernelAvailable}.0; fi
@@ -163,7 +162,7 @@ selectiveupgrade(){
 
 upgradekernel(){
     #scarica lista kernel ed attributi
-    list=$(lynx --dump http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk '/http/{print $2}')
+    list=$(curl -s http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}')
     AddressLastVersion=$( echo "${list}"  | grep -v rc | tail -n 1)
     LastKernelAvailable=$(echo $AddressLastVersion | cut -d "/" -f 6 | cut -d "-" -f1 | tr -d v )
     if [ -z $(echo $LastKernelAvailable | cut -d "." -f3) ]  ; then LastKernelAvailable=${LastKernelAvailable}.0; fi  
@@ -196,7 +195,8 @@ upgradekernel(){
             echo "Ok, scarico il nuovo kernel"
             DownloadFolder=/tmp/kernel_$LastKernelAvailable
             mkdir -p $DownloadFolder; cd $DownloadFolder
-            wget $(lynx -dump -listonly $AddressLastVersion | awk '/http/{print $2}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
+            
+	    wget $(curl -s $AddressLastVersion | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
             echo
             echo "...e lo installo"
             echo

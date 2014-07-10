@@ -42,7 +42,7 @@
 #   Fesion <fesion//#AT#//libero.it>
 
 
-VERSION=0.50
+VERSION=0.51
 
 notifica(){
     if [ -f "/usr/bin/notify-send" ]; then
@@ -195,8 +195,8 @@ upgradekernel(){
             echo "Ok, scarico il nuovo kernel"
             DownloadFolder=/tmp/kernel_$LastKernelAvailable
             mkdir -p $DownloadFolder; cd $DownloadFolder
-            
-	    wget $(curl -s $AddressLastVersion | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
+            titolo=$(curl -s $AddressLastVersion | egrep '<title>' | awk '{print substr($3,0,length($3)-8)}' )
+	    wget $(curl -s $AddressLastVersion | awk -v p=$titolo -F\" '{if (NF > 7) print "http://kernel.ubuntu.com"p"/"$8}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
             echo
             echo "...e lo installo"
             echo

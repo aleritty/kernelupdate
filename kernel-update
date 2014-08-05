@@ -42,7 +42,7 @@
 #   Fesion <fesion//#AT#//libero.it>
 
 
-VERSION=0.51
+VERSION=0.53
 
 notifica(){
     if [ -f "/usr/bin/notify-send" ]; then

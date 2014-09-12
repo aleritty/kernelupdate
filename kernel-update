@@ -7,9 +7,6 @@
 #    Questo script permette di tenere sotto controllo il proprio kernel
 #    Aggiornando, pulendo e facendo altre operazioni
 #
-#    Script liberamente tratto dal kernelupdater di ferramroberto
-#    Correzione Bug di LinuxMint a cura di "IlBruttoBug" Blog
-#
 #    Esecuzione:
 #        ~$ sudo ./kernel-update [ -h --help]
 #
@@ -114,7 +111,7 @@ upgradescript(){
                     else
                         notifica "Nessun aggiornamento effettuato"
                     fi
-                    
+
                     read -p "Premi un tasto per continuare" -n 1
                 else
                     read -p "Dove metto il file con la nuova versione? (percorso assoluto)" -s locatinstall
@@ -195,7 +192,7 @@ upgradekernel(){
             echo "Ok, scarico il nuovo kernel"
             DownloadFolder=/tmp/kernel_$LastKernelAvailable
             mkdir -p $DownloadFolder; cd $DownloadFolder
-            titolo=$(curl -s $AddressLastVersion | egrep '<title>' | awk '{print substr($3,0,length($3)-7)}' )
+            titolo=$(curl -s $AddressLastVersion | egrep '<title>' | awk '{print substr($3,0,length($3)-8)}' )
 	    wget $(curl -s $AddressLastVersion | awk -v p=$titolo -F\" '{if (NF > 7) print "http://kernel.ubuntu.com"p"/"$8}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
             echo
             echo "...e lo installo"

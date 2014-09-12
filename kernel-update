@@ -34,9 +34,6 @@
 #   Questo script agisce su indicazioni e conferma dell'utente, pertanto 
 #   l'autore non si ritiene responsabile di qualsiasi danno o perdita di dati 
 #   derivata dall'uso improprio o inconsapevole di questo script!
-#
-#   Contributo alla versione 0.50:
-#   Fesion <fesion//#AT#//libero.it>
 
 
 VERSION=0.53

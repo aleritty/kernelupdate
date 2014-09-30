@@ -12,9 +12,11 @@ sudo ./update-kernel [--help | --upd | --rem ]
 --upd 			Aggiorna il kernel all'ultima versione
 --chk			controlla se ci sono aggiornamenti del kernel
 --help			Mostra questa schermata
-```
 
 Per maggiori informazioni leggere il contenuto dello script
+```
+
+### Nuova versione, dalla 0.55 abbiamo una interfaccia grafica seria!
 
 
 ### Nel caso foste a conoscenza di altre distribuzioni che utilizzano il kernel patchato da Ubuntu segnalatemele e provvederò ad aggiungerle allo script!
@@ -27,8 +29,8 @@ Da oggi i ringraziamenti saranno spostati in questa sezione:
 - Fesion --> Eliminazione di lynx come dipendenza (anche se ha introdotto altri bug!)
 
 
-##todo:
-* internazionalizzazione (l'inglese è importante nella vita)
+##Todo:
+* internazionalizzazione ([almeno] l'inglese è importante nella vita)
 
 
 ##Donazioni

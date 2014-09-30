@@ -32,10 +32,7 @@
 #   l'autore non si ritiene responsabile di qualsiasi danno o perdita di dati 
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
-
-##########dipendenze (da installare dopo richiesta): dialog curl wget 
-
-VERSION=0.58
+VERSION=0.59
 maintitle='Kernel Updater v.'$VERSION' by AleRitty'
 autorizeddistro=['Ubuntu','LinuxMint']
 actualkern=`uname -r`
@@ -43,6 +40,26 @@ actualkern=`uname -r`
 INPUT=/tmp/menu.sh.$$
 OUTPUT=/tmp/output.sh.$$
 trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
+
+######################### Se non sei root non sei figo #########################
+if [[ $EUID -ne 0 ]]; then
+   notifica "Devi avere i privilegi da superutente per lanciarmi" 1>&2
+   exit 1
+fi
+
+######################### Installazione dipendenze #############################
+for scelta in 'dialog curl wget'
+if ! which $scelta > /dev/null;then
+  echo
+  echo
+  read -p "Non hai la dipendenza $scelta, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
+  echo
+    if [[ "$sicupd" != "n" ]]; then
+      apt-get -y install $scelta
+    else
+      exit 1
+    fi
+fi
 
 ############################# Notifiche e feedback #############################
 notifica(){
@@ -59,50 +76,6 @@ notifica(){
         echo "$1"
         echo
 }
-
-######################### Installazione dipendenze #############################
-if ! which dialog > /dev/null;then
-  echo
-  echo
-  read -p "Non hai la dipendenza dialog, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
-  echo
-    if [[ "$sicupd" != "n" ]]; then
-      apt-get -y install dialog
-    else
-      exit 1
-    fi
-fi
-
-if ! which curl > /dev/null;then
-  echo
-  echo
-  read -p "Non hai la dipendenza curl, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
-  echo
-    if [[ "$sicupd" != "n" ]]; then
-      apt-get -y install curl
-    else
-      exit 1
-    fi
-fi
-
-if ! which wget > /dev/null;then
-  echo
-  echo
-  read -p "Non hai la dipendenza wget, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
-  echo
-    if [[ "$sicupd" != "n" ]]; then
-      apt-get -y install wget
-    else
-      exit 1
-    fi
-fi
-
-
-######################### Se non sei root non sei figo #########################
-if [[ $EUID -ne 0 ]]; then
-   notifica "Devi avere i privilegi da superutente per lanciarmi" 1>&2
-   exit 1
-fi
 
 ################### Se non hai la distro giusta non puoi entrare ###############
 distribid=$(cat /etc/lsb-release | grep DISTRIB_ID)
@@ -123,12 +96,12 @@ upgradescript(){
                 if [ -e "/usr/bin/kernel-update" ];then
                   mv /tmp/kernel-updatescriptdown /usr/bin/kernel-update
                   notifica "Binario di sistema aggiornato"
-                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando di sistema per proseguire" 5 60
+                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando di sistema per proseguire" 10 60
                 else
                   percorso=`pwd`"/kernel-update"
                   mv /tmp/kernel-updatescriptdown "$percorso"
                   chown $UID "$percorso"; chmod +x "$percorso"
-                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando dalla directory corrente per proseguire" 5 60
+                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando dalla directory corrente per proseguire" 10 60
                 fi
                 clear
                 exit 0

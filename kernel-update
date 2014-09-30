@@ -35,7 +35,7 @@
 
 ##########dipendenze (da installare dopo richiesta): dialog curl wget 
 
-VERSION=0.57
+VERSION=0.56
 maintitle='Kernel Updater v.'$VERSION' by AleRitty'
 autorizeddistro=['Ubuntu','LinuxMint']
 actualkern=`uname -r`
@@ -127,7 +127,7 @@ upgradescript(){
                 else
                   percorso=`pwd`"/kernel-update"
                   mv /tmp/kernel-updatescriptdown "$percorso"
-                  chown $UID "$percorso"
+                  chown $UID "$percorso"; chmod +x "$percorso"
                   dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando dalla directory corrente per proseguire" 10 60
                 fi
                 exit 0

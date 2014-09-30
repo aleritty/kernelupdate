@@ -35,7 +35,7 @@
 
 ##########dipendenze (da installare dopo richiesta): dialog curl wget 
 
-VERSION=0.55
+VERSION=0.1
 maintitle='Kernel Updater v.'$VERSION' by AleRitty'
 autorizeddistro=['Ubuntu','LinuxMint']
 actualkern=`uname -r`
@@ -113,7 +113,7 @@ fi
 
 ##################### Aggiornamento dello script da github #####################
 upgradescript(){
-    gitversion=$(curl -L -s https://github.com/aleritty/kernelupdate/raw/master/dev.kernel-update | grep "^VERSION=")
+    gitversion=$(curl -L -s https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
     if [[ ${gitversion:8} > $VERSION ]];then
         echo 
         dialog --clear --backtitle "$maintitle" --title "Nuova versione dello script" --yesno "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare?" 10 60

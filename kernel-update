@@ -35,7 +35,7 @@
 
 ##########dipendenze (da installare dopo richiesta): dialog curl wget 
 
-VERSION=0.56
+VERSION=0.58
 maintitle='Kernel Updater v.'$VERSION' by AleRitty'
 autorizeddistro=['Ubuntu','LinuxMint']
 actualkern=`uname -r`
@@ -123,13 +123,14 @@ upgradescript(){
                 if [ -e "/usr/bin/kernel-update" ];then
                   mv /tmp/kernel-updatescriptdown /usr/bin/kernel-update
                   notifica "Binario di sistema aggiornato"
-                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando di sistema per proseguire" 10 60
+                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando di sistema per proseguire" 5 60
                 else
                   percorso=`pwd`"/kernel-update"
                   mv /tmp/kernel-updatescriptdown "$percorso"
                   chown $UID "$percorso"; chmod +x "$percorso"
-                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando dalla directory corrente per proseguire" 10 60
+                  dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando dalla directory corrente per proseguire" 5 60
                 fi
+                clear
                 exit 0
             fi
         else
@@ -157,7 +158,7 @@ yo_update(){
     i686) myarch="i386";;
     i386) myarch="i386";;
     x86_64) myarch="amd64";;
-    *)notifica "Ma che processore hai? Non trovo pacchetti per lui..."; exit 1 ;;
+    *)notifica "Ma che processore hai? Non trovo pacchetti per lui...";clear; exit 1 ;;
     esac
 
     #confronto
@@ -247,6 +248,7 @@ yo_manage(){
       if [ "$yesno" = "0" ];then
         ln $0 /usr/bin/kernel-update
         dialog --title "Installato" --msgbox "Script installato correttamente, rilancia il comando di sistema per proseguire" 5 60
+        clear
         exit 0
       fi
     else

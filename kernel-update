@@ -10,11 +10,8 @@
 #    Esecuzione:
 #        ~$ sudo ./kernel-update [ -h --help]
 #
-#    Per uscire dal programma premere il tasto "q"
-#
 #    Ricordarsi di dare allo script i permessi di esecuzione con il comando:
 #        ~$ chmod +x kernel-update
-#
 #
 #    Questo script è rilasciato sotto licenza creative commons: 
 #       http://creativecommons.org/licenses/by-nc-sa/2.5/it/
@@ -36,8 +33,18 @@
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
 
-VERSION=0.53
+##########dipendenze (da installare dopo richiesta): dialog curl wget 
 
+VERSION=0.55
+maintitle='Kernel Updater v.'$VERSION' by AleRitty'
+autorizeddistro=['Ubuntu','LinuxMint']
+actualkern=`uname -r`
+
+INPUT=/tmp/menu.sh.$$
+OUTPUT=/tmp/output.sh.$$
+trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
+
+############################# Notifiche e feedback #############################
 notifica(){
     if [ -f "/usr/bin/notify-send" ]; then
         notify-send -i  preferences-system-notifications "Kernel Update" "$1"
@@ -53,79 +60,134 @@ notifica(){
         echo
 }
 
+######################### Installazione dipendenze #############################
+if ! which dialog > /dev/null;then
+  echo
+  echo
+  read -p "Non hai la dipendenza dialog, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
+  echo
+    if [[ "$sicupd" != "n" ]]; then
+      apt-get -y install dialog
+    else
+      exit 1
+    fi
+fi
+
+if ! which curl > /dev/null;then
+  echo
+  echo
+  read -p "Non hai la dipendenza curl, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
+  echo
+    if [[ "$sicupd" != "n" ]]; then
+      apt-get -y install curl
+    else
+      exit 1
+    fi
+fi
+
+if ! which wget > /dev/null;then
+  echo
+  echo
+  read -p "Non hai la dipendenza wget, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
+  echo
+    if [[ "$sicupd" != "n" ]]; then
+      apt-get -y install wget
+    else
+      exit 1
+    fi
+fi
+
+
+######################### Se non sei root non sei figo #########################
 if [[ $EUID -ne 0 ]]; then
    notifica "Devi avere i privilegi da superutente per lanciarmi" 1>&2
    exit 1
 fi
 
-autorizeddistro=['Ubuntu','LinuxMint']
-
+################### Se non hai la distro giusta non puoi entrare ###############
 distribid=$(cat /etc/lsb-release | grep DISTRIB_ID)
 if ! [[ ${autorizeddistro[*]} =~ "${distribid:11}" ]]; then
     echo "Questo script installa i kernel di ubuntu, se lo vuoi lanciare su un'altra distribuzione lo fai a tuo rischio e pericolo di rompere tutto... Pertanto ti assumi anche l'onere di modificare lo script in modo che ti consenta di farlo, se non ne sei capace vuol dire che non dovresti nemmeno installare un kernel non progettato per la tua distribuzione."
     exit 1
 fi
 
-
-sysinstall(){
-    echo
-    read -p "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~$ sudo kernel-update ok? [s]/n" -n 1 -s sicupd
-    if [[ "$sicupd" != "n" ]]; then
-        cp $0 /usr/bin/kernel-update
-        echo
-        echo "Installazione completata"
-        echo "Da questo momento è possibile lanciare lo script con"
-        echo "$ sudo kernel-update || # kernel-update"
-        echo "da ovunque e da tutti gli utenti con permessi di superutente (vedi visudo)"
-        echo
-        read -p "Premi un tasto per continuare" -n 1
-    fi
-}
-
-sysuninstall(){
-    echo
-    read -p "Vuoi relmente disinistallare kernel-update dal sistema? [s]/n" -n 1 -s sicupd
-    if [[ "$sicupd" != "n" ]]; then
-        rm /usr/bin/kernel-update
-        notifica "disinstallazione completata"
-        read -p "Premi un tasto per continuare" -n 1
-        exit 0
-    fi
-}
-
+##################### Aggiornamento dello script da github #####################
 upgradescript(){
-    gitversion=$(curl -L -s https://github.com/aleritty/kernelupdate/raw/master/kernel-update | grep "^VERSION=")
+    gitversion=$(curl -L -s https://github.com/aleritty/kernelupdate/raw/master/dev.kernel-update | grep "^VERSION=")
     if [[ ${gitversion:8} > $VERSION ]];then
         echo 
-        read -p "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare? [s]/n" -n 1 -s sicupd
-        if [[ "$sicupd" != "n" ]]; then
+        dialog --clear --backtitle "$maintitle" --title "Nuova versione dello script" --yesno "La nuova versione "${gitversion:8}" è disponibile, vuoi aggiornare?" 10 60
+        sicupd=$?
+        if [[ "$sicupd" = "0" ]]; then
             if $(wget https://github.com/aleritty/kernelupdate/raw/master/kernel-update -O /tmp/kernel-updatescriptdown);then
                 if [ -e "/usr/bin/kernel-update" ];then
-                    read -p "Aggiorno il binario di sistema? [s]/n" -n 1 -s sicinst
-                    if [[ "$sicupd" != "n" ]]; then
-                        cp /tmp/kernel-updatescriptdown /usr/bin/kernel-update
-                        notifica "Binario di sistema aggiornato"
-                    else
-                        notifica "Nessun aggiornamento effettuato"
-                    fi
-
-                    read -p "Premi un tasto per continuare" -n 1
+                  mv /tmp/kernel-updatescriptdown /usr/bin/kernel-update
+                  notifica "Binario di sistema aggiornato"
+                  dialog --title "Installato" --msgbox "Script installato correttamente, rilancia il comando di sistema per proseguire" 5 60
                 else
-                    read -p "Dove metto il file con la nuova versione? (percorso assoluto)" -s locatinstall
-                    cp /tmp/kernel-updatescriptdown $locatinstall
+                  echo
+                    # while salvataggio non va a buon fine o exit code chiedi posizione
+#                    read -p "Dove metto il file con la nuova versione? (percorso assoluto)" -s locatinstall
+#                    mv /tmp/kernel-updatescriptdown $locatinstall
                 fi
-                notifica "Ricordati di uscire e rilanciare lo script per avere la nuova versione"
-                read -p "Premi un tasto per continuare" -n 1
+                exit 0
             fi
         else
-            notifica "Per questa volta salto l'aggiornamento"
-            read -p "Premi un tasto per continuare" -n 1
+          dialog --title "Canguro" --msgbox "Per questa volta salto l'aggiornamento" 5 60
         fi
+    fi
+}
+upgradescript
+
+####################### Aggiornamento kernel attuale ###########################
+yo_update(){
+    #scarica lista kernel
+    list=$(curl -s http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}')
+    AddressLastVersion=$( echo "${list}"  | grep -v rc | tail -n 1)
+    LastKernelAvailable=$(echo $AddressLastVersion | cut -d "/" -f 6 | cut -d "-" -f1 | tr -d v )
+    if [ -z $(echo $LastKernelAvailable | cut -d "." -f3) ]  ; then LastKernelAvailable=${LastKernelAvailable}.0; fi  
+
+    #ottiene i kernel installati e l'attuale
+    LastKernelInstalled=$(ls /boot/ | grep img | cut -d "-" -f2 | sort -V | cut -d "." -f1,2,3 | tail -n 1)
+    InstalledType=$(ls /boot/ | grep img | sort -V | tail -n 1 | cut -d "-" -f4)
+
+    #tipo di processore
+    arch=`uname -m`
+    case $arch in
+    i686) myarch="i386";;
+    i386) myarch="i386";;
+    x86_64) myarch="amd64";;
+    *)notifica "Ma che processore hai? Non trovo pacchetti per lui..."; exit 1 ;;
+    esac
+
+    #confronto
+    if [ $LastKernelInstalled = $LastKernelAvailable ]; then
+        dialog --title "Sei aggiornato" --msgbox "Il tuo kernel $LastKernelInstalled è l'ultima versione disponibile." 5 60
     else
-        echo "Nessun aggiornamento trovato, hai l'ultima versione dello script"
+        dialog --clear --backtitle "$maintitle" --title "Aggiornamento trovato" --yesno "Il tuo kernel è il $LastKernelInstalled $InstalledType , è disponibile il  $LastKernelAvailable Vuoi aggiornare?" 10 60
+    aggiorno=$?
+        if [[ "$aggiorno" = "0" ]];then
+            DownloadFolder=/tmp/kernel_$LastKernelAvailable
+            mkdir -p $DownloadFolder; cd $DownloadFolder
+      	    wget -q $(curl -s $AddressLastVersion | awk -v p=$titolo -F\" '{if (NF > 7) print "'$AddressLastVersion'"$8}' | egrep 'all.deb|'$InstalledType'(.){1,}'$myarch'.deb')
+            if $(dpkg -i *.deb);then
+              dialog --title "Sei aggiornato" --msgbox "Ho installato correttamente il kernel $LastKernelAvailable $InstalledType, leggi l'output in cerca di errori, in particolare se hai moduli proprietari come i driver per le schede video e riavvia per attivare il tuo nuovo kernel" 10 60
+            else
+               dialog --title "Attenzione" --msgbox "Qualcosa è andato storto durante l'installazione, leggi bene l'output sopra in cerca dell'errore e riparalo!
+Non riavviare fino a quando lo avrai fatto, oppure riavvia su un altro kernel!" 8 60
+            fi
+        else
+          dialog --title "Canguro" --msgbox "Hai scelto di non aggiornare" 5 60
+        fi
     fi
 }
 
+######################## Scelta kernel da installare ###########################
+yo_scelta(){
+  dialog --title "Pazienta..." --msgbox "Questa feature è attualmente in sviluppo, dovrai pazientare qualche giorno per averla!" 8 60
+}
+
+###################### Controllo se ci sono aggiornamenti ######################
 chkkernelupdate(){    
     list=$(curl -s http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}')
     AddressLastVersion=$( echo "${list}"  | grep -v rc | tail -n 1)
@@ -139,115 +201,80 @@ chkkernelupdate(){
     fi
 }
 
-removeclean(){
-    #"elimina tutti i kernel tranne l'ultimo da rivedere!!! Elimina anche gli headers"
-    notifica "eliminazione kernel in revisione"
-    #dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | egrep '[0-9]+\.[0-9]+\.[0-9]+' | grep -v $($(uname -r):b) | xargs sudo apt-get -y autoremove --purge
-    #sudo apt-get -s purge $(dpkg --get-selections | awk '((/^linux-/) && (/[0-9]\./) && (!/'"`uname -r | sed "s/-generic//g"`"'/)) {print $1}')
+###################### Disinstallazione kernels ################################
+yo_clean(){
+instakern=`dpkg-query -W -f='${db:Status-Abbrev} ${Package} off\n' 'linux-image*' | grep "^ii  " | grep -v -e $actualkern -e 'linux-image-generic' -e 'extra' | awk '{ print $2 } {print FNR} {print $3}'` #ottengo lista kernel kernel installati
+  dialog --clear --backtitle "$maintitle" --title "Pulizia Kernel" --checklist "Scegli i kernel che vuoi rimuovere: \n Attualmente usi $actualkern" 13 60 8 $instakern 2>"${INPUT}"
+elenco=$(<"${INPUT}")
+  for sc in $elenco
+  do
+    varsc=`echo $sc | grep -o -e '[0-9]\.[0-9]\{1,\}\.[0-9]\{1,\}-[0-9]\{1,\}'`
+    apt-get -y --force-yes purge $sc-* linux-headers-$varsc-* linux-image-extra-$varsc-* # devo disinstallare anche gli header e gli extra
+    echo
+    echo
+    read -p "Disinstallazione kernel $varsc terminata, premi un tasto quando vuoi proseguire" -n1 # Separo ogni disinstallazione per permettere di controllare il log
+    echo
+  done
 }
 
-selectiveclean(){
-    notifica "in sviluppo"
+########################### Gestione anacron ###################################
+yo_cron(){
+  if [ ! -f "/etc/cron.weekly/99Zkernelupdate" ];then
+    dialog --clear --backtitle "$maintitle" --title "Installazione in anacron" --yesno "Vuoi installare il controllo settimanale degli aggiornamenti del kernel? Verrà utilizzato anacron per il controllo. Verrai notificato ogni settimana se sono stati trovati aggiornamenti." 10 60
+    yesno=$?
+    if [ "$yesno" = "0" ];then
+      touch "/etc/cron.weekly/99Zkernelupdate"
+      chmod +x "/etc/cron.weekly/99Zkernelupdate"
+      echo '#!/bin/bash' > "/etc/cron.weekly/99Zkernelupdate"
+      echo '/usr/bin/kernel-update --chk' >> "/etc/cron.weekly/99Zkernelupdate"
+      dialog --title "Installato" --msgbox "Controllo installato correttamente" 5 60
+    fi
+  else
+    dialog --clear --backtitle "$maintitle" --title "Installazione in anacron" --yesno "Vuoi installare il controllo settimanale degli aggiornamenti del kernel? Verrà utilizzato anacron per il controllo. Verrai notificato ogni settimana se sono stati trovati aggiornamenti." 10 60
+    yesno=$?
+    if [ "$yesno" = "0" ];then
+      rm /etc/cron.weekly/99Zkernelupdate
+      dialog --title "Disinstallato" --msgbox "Controllo disinstallato correttamente" 5 60
+    fi
+  fi
 }
 
-selectiveupgrade(){
-    notifica "in sviluppo"
-}
-
-upgradekernel(){
-    #scarica lista kernel ed attributi
-    list=$(curl -s http://kernel.ubuntu.com/~kernel-ppa/mainline/ | awk -F\" '{if (NF > 7) print "http://kernel.ubuntu.com/~kernel-ppa/mainline/"$8}')
-    AddressLastVersion=$( echo "${list}"  | grep -v rc | tail -n 1)
-    LastKernelAvailable=$(echo $AddressLastVersion | cut -d "/" -f 6 | cut -d "-" -f1 | tr -d v )
-    if [ -z $(echo $LastKernelAvailable | cut -d "." -f3) ]  ; then LastKernelAvailable=${LastKernelAvailable}.0; fi  
-
-    #ottiene i kernel installati e l'attuale
-    LastKernelInstalled=$(ls /boot/ | grep img | cut -d "-" -f2 | sort -V | cut -d "." -f1,2,3 | tail -n 1)
-
-    #tipo di processore
-    arch=`uname -m`
-    if  [ $arch = i686 ] || [ $arch = i386 ]; then 
-        myarch="i386" 
-    elif [ $arch = "x86_64" ]; then
-        myarch="amd64"
-    else 
-        notifica "Ma che processore hai? Non trovo pacchetti per lui..."
+###################### Gestione script a livello sistema #######################
+yo_manage(){
+    if [ ! -e "/usr/bin/kernel-update" ];then
+      dialog --clear --backtitle "$maintitle" --title "Installazione" --yesno "Hai scelto di installarmi a livello di sistema, potrai richiamarmi direttamente con ~\$sudo kernel-update. Procedo?" 10 60
+      yesno=$?
+      if [ "$yesno" = "0" ];then
+        ln $0 /usr/bin/kernel-update
+        dialog --title "Installato" --msgbox "Script installato correttamente, rilancia il comando di sistema per proseguire" 5 60
         exit 0
-    fi
-
-    #confronto
-    if [ $LastKernelInstalled = $LastKernelAvailable ]; then
-        notifica "Il tuo kernel $LastKernelInstalled è l'ultima versione disponibile."
-        read -p "Premi un tasto per continuare" -n 1
+      fi
     else
-        echo
-        echo "    Il tuo kernel è il " $LastKernelInstalled ", è disponibile il " $LastKernelAvailable
-        echo
-        read -p "Vuoi aggiornare? [s]/n" -n 1 -s aggiorno
-        if [[ "$aggiorno" != "n" ]];then
-            echo
-            echo "Ok, scarico il nuovo kernel"
-            DownloadFolder=/tmp/kernel_$LastKernelAvailable
-            mkdir -p $DownloadFolder; cd $DownloadFolder
-            titolo=$(curl -s $AddressLastVersion | egrep '<title>' | awk '{print substr($3,0,length($3)-8)}' )
-	    wget $(curl -s $AddressLastVersion | awk -v p=$titolo -F\" '{if (NF > 7) print "http://kernel.ubuntu.com"p"/"$8}' | egrep 'all.deb|generic(.){1,}'$myarch'.deb')
-            echo
-            echo "...e lo installo"
-            echo
-            sudo dpkg -i *.deb
-            echo
-            echo "ho aggiornato all'ultima versione, riavvia per averla subito"
-            echo
-            echo "Se vuoi posso disinstallare i vecchi kernel, ma sarebbe consigliato prima riavviare per vedere se il" $LastKernelAvailable " funziona"
-            echo
-            read -p "Che faccio tolgo di mezzo i vecchi kernel? s/[n]" -n 1 -s pulisco
-            if [[ "$pulisco" != "s" ]];then
-                echo
-                echo "ok, dovrai farlo a mano o rilanciarmi"
-            else
-                removeclean
-            fi
-        else
-            #hai scelto di non aggiornare
-            echo
-            notifica "Ok, hai scelto di non aggiornare!"
-            read -p "Premi un tasto per continuare" -n 1
-        fi
+      dialog --clear --backtitle "$maintitle" --title "Disinstallazione" --yesno "Vuoi davvero disinstallarmi?" 10 60
+      yesno=$?
+      if [ "$yesno" = "0" ];then
+        rm /usr/bin/kernel-update
+        dialog --title "Disinstallato" --msgbox "Script disinstallato correttamente" 5 60
+      fi
     fi
 }
 
-instanacron(){
-    if ! [  -f "/etc/cron.daily/99kernelupdate" ];then
-        touch "/etc/cron.weekly/ZZkernelupdate"
-        chmod +x "/etc/cron.weekly/ZZkernelupdate"
-        echo '#!/bin/bash' > "/etc/cron.weekly/ZZkernelupdate"
-        echo '/usr/bin/kernel-update --chk' >> "/etc/cron.weekly/ZZkernelupdate"
-    fi
-    notifica "Autocheck installato"
-}
-
-uninstanacron(){
-    if [  -f "/etc/cron.weekly/ZZkernelupdate" ];then
-        rm /etc/cron.weekly/ZZkernelupdate
-        notifica "Autocheck rimosso"
-    else
-        notifica "Non avevi nessun Autocheck installato... Non ho fatto niente"
-    fi
-}
-
+################# Sezione help ed invocazioni particolari ######################
 if [[ "$1" = "--help" || "$1" = "-h" ]]; then
     echo
-    echo "Kernel-update
-Written By AleRitty <aleritty#\@/#aleritty.net>
+    echo "Kernel-update $VERSION
+Written By AleRitty <aleritty@aleritty.net>
 Aggiorna o gestisce i kernel installati sul sistema
 
 Usage:
 sudo ./update-kernel [--help | --upd | --rem ]
 
---upd             Aggiorna il kernel all'ultima versione
---rem            rimuove tutti i kernel tranne l'ultimo
---chk            Controlla solo la presenza di aggiornamenti del kernel
---help            Mostra questa schermata
+--upd    Aggiorna il kernel all'ultima versione senza conferme (unattended mode)
+--chk    Controlla solo la presenza di aggiornamenti del kernel
+--help   Mostra questa schermata
+
+L'invocazione normale senza parametri lancia l'interfaccia di comando dialog
+
 "
     exit 1
 fi
@@ -259,78 +286,32 @@ if [[ "$1" = "--upd" || "$1" = "-u" ]]; then
     exit 0
 fi
 
-if [[ "$1" = "--rem" || "$1" = "-r" ]]; then
-    echo
-    notifica "Kernel-update: hai scelto di cancellare i vecchi kernel senza passare dal via"
-    removeclean
-    exit 0
-fi
-
 if [[ "$1" = "--chk" ]]; then
     notifica "controllo aggiornamenti"
     chkkernelupdate
     exit 0
 fi
 
-FIRSTTIME=1 # 1 se non abbiamo ancora cercato aggiornamenti, 0 altrimenti
-
-while :
+############################# Inizio Loop di lavoro ############################
+while true
 do
-    clear
-    echo
-    echo "Kernel Update by AleRitty $VERSION
-    Questo script permette di tenere sotto controllo il proprio kernel
-    Aggiornando, pulendo e facendo altre operazioni"
-    echo
-    if [[ $FIRSTTIME -eq 1 ]]; then
-        upgradescript
-        FIRSTTIME=0
-    fi
-    echo
-    echo "a) Aggiornamenti kernel"
-#    echo "b) Pulizia vecchi kernel"
-    if [[ "$0" != "/usr/bin/kernel-update" ]];then
-        echo "c) Installa questo script a livello di sistema"
-    else
-        echo "d) Disinstalla script di sistema"
-    fi
-    if ! [ -f "/etc/cron.weekly/ZZkernelupdate" ];then
-        echo "e) Installa controllo automatico aggiornamenti kernel (settimanale)"
-    else
-        echo "f) Disinstalla controllo automatico aggiornamenti kernel (settimanale)"
-    fi
-    echo "q) Esci"
-    echo
-    read -p 'Che cosa vuoi fare?' -n 1 -s x
-    case $x in
-        a )    echo
-            upgradekernel
-            ;;
-#        b )    echo
-#            removeclean
-#            ;;
-        c )    echo
-            sysinstall
-            ;;
-        d )    echo
-            sysuninstall
-            ;;
-        e )    echo
-            instanacron
-            ;;
-        f )    echo
-            uninstanacron
-            ;;
-        q )    echo
-            clear
-            echo
-              echo "Ok, ciao!"
-              echo
-            exit 0
-            ;;
-        * )
-            echo
-            echo "Comando non valido "\"$x\"
-            ;;
-    esac
+dialog --clear --no-cancel --backtitle "$maintitle" --title "Kernel-Update" --menu "Cosa vuoi fare?" 15 50 6 \
+Aggiorna "il kernel" \
+Installa "un altro kernel" \
+Pulisci "i vecchi kernel" \
+Cron "Controllo automatico aggiornamenti kernel" \
+Gestione "script" \
+Esci "dallo script" 2>"${INPUT}"
+menuitem=$(<"${INPUT}")
+
+case $menuitem in
+  Aggiorna) yo_update ;;
+  Installa) yo_scelta ;;
+  Pulisci) yo_clean ;;
+  Cron) yo_cron ;;
+  Gestione) yo_manage ;; #fatto
+  Esci) clear ; echo "Ciao"; echo ; break;;
+esac
 done
+[ -f $OUTPUT ] && rm $OUTPUT
+[ -f $INPUT ] && rm $INPUT

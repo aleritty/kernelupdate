@@ -50,18 +50,19 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 ######################### Installazione dipendenze #############################
-for scelta in 'dialog curl wget'
-if ! which $scelta > /dev/null;then
-  echo
-  echo
-  read -p "Non hai la dipendenza $scelta, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
-  echo
+for scelta in 'dialog curl wget'; do
+  if ! which $scelta > /dev/null;then
+    echo
+    echo
+    read -p "Non hai la dipendenza $scelta, vuoi installarla? (senza non funzionerò) [s]/n" -n 1 -s sicupd
+    echo
     if [[ "$sicupd" != "n" ]]; then
       apt-get -y install $scelta
     else
       exit 1
     fi
-fi
+  fi
+done
 
 ############################# Notifiche e feedback #############################
 notifica(){

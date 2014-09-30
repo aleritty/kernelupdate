@@ -103,7 +103,8 @@ upgradescript(){
                 else
                   percorso=`pwd`"/kernel-update"
                   mv /tmp/kernel-updatescriptdown "$percorso"
-                  chown $UID "$percorso"; chmod +x "$percorso"
+                  chown $UID "$percorso"
+                  chmod +x "$percorso"
                   dialog --title "Aggiornato" --msgbox "Script aggiornato correttamente, rilancia il comando dalla directory corrente per proseguire" 10 60
                 fi
                 clear

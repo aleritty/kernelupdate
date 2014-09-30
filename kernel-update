@@ -33,7 +33,7 @@
 #   derivata dall'uso improprio o inconsapevole di questo script!
 
 VERSION=0.59
-maintitle='Kernel Updater v.'$VERSION' by AleRitty'
+maintitle='Kernel Updater v'$VERSION' by AleRitty'
 autorizeddistro=['Ubuntu','LinuxMint']
 actualkern=`uname -r`
 

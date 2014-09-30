@@ -43,7 +43,9 @@ trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
 
 ######################### Se non sei root non sei figo #########################
 if [[ $EUID -ne 0 ]]; then
-   notifica "Devi avere i privilegi da superutente per lanciarmi" 1>&2
+   echo
+   echo "Devi avere i privilegi da superutente per lanciarmi"
+   echo
    exit 1
 fi
 

@@ -31,6 +31,10 @@
 #	Questo script agisce su indicazioni e conferma dell'utente, pertanto 
 #	l'autore non si ritiene responsabile di qualsiasi danno o perdita di dati 
 #	derivata dall'uso improprio o inconsapevole di questo script!
+#######################################################################################################
+# GIAMAT 05/08/15 : Modificato per rilanciarsi con privilegi di amministratore (spec I001)
+#######################################################################################################
+
 
 DIPENDENZE="dialog curl wget"
 
@@ -47,6 +51,9 @@ trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
 if [[ $EUID -ne 0 ]]; then
 	echo
 	echo "ERRORE: Devi avere i privilegi da superutente per lanciarmi"
+	echo 
+	echo "Mi rilancio come amministratore" # I001
+        exec sudo -- "$0" "$@"	# I001
 	echo
 	exit 1
 fi
